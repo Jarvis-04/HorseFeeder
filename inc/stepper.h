@@ -3,12 +3,20 @@
 
 #include "header.h"
 
+typedef struct stepper {
+    volatile uint16_t stepPin;
+    volatile uint16_t dirPin;
+    volatile uint32_t stepTime;
+}Stepper_TypeDef;
+
 enum {STEPPER_CW, STEPPER_CCW};
 
-void stepper_init(uint32_t step, uint32_t dir, uint32_t baseStepTime);
+void stepper_init(Stepper_TypeDef *stepper);
 
-void stepper_step(uint32_t step, uint32_t dir, uint32_t numSteps);
+void stepper_setDir(Stepper_TypeDef *stepper, bool dir);
 
-void stepper_test(uint32_t step, uint32_t dir);
+void stepper_step(Stepper_TypeDef *stepper, uint32_t numSteps);
+
+void stepper_stepAccel(Stepper_TypeDef *stepper, uint32_t numSteps);
 
 #endif

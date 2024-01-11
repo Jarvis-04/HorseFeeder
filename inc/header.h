@@ -1,6 +1,9 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include "stm32f446xx.h"
+#include "core_cm4.h"
+
 #ifndef HEADER_H_INCLUDED
 #define HEADER_H_INCLUDED
 

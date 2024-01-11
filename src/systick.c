@@ -12,13 +12,13 @@ void systick_init(uint32_t reloadValue) {
     // Set clock source to processor
     // Enable interupts
     // Enable Systick
-    SysTick->CSR |= 0x7U;
+    SysTick->CTRL |= 0x7U;
 
     // Reset Value Register then set with desired value
-    SysTick->RVR &= ~(0xFFFFFFU);
-    SysTick->RVR |= ((reloadValue-1) & 0xFFFFFFU);
+    SysTick->LOAD &= ~(0xFFFFFFU);
+    SysTick->LOAD |= ((reloadValue-1) & 0xFFFFFFU);
 
-    SysTick->CVR = 0U;
+    SysTick->VAL = 0U;
 
     // Enable systick clock
     rcc_enableSysTick();
