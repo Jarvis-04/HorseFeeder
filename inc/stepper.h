@@ -19,4 +19,8 @@ void stepper_step(Stepper_TypeDef *stepper, uint32_t numSteps);
 
 void stepper_stepAccel(Stepper_TypeDef *stepper, uint32_t numSteps);
 
+void stepper_eStop();
+
+void stepper_resetEStop();
+
 #endif

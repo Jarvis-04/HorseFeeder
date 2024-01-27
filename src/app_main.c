@@ -2,10 +2,16 @@
 #include "header.h"
 #include "stepper.h"
 #include "gpio.h"
+#include "exti.h"
 
 int app_main(void) {
     uint16_t step = PIN('A', 5);
     uint16_t dir = PIN('A', 9);
+    uint16_t button = PIN('C', 13);
+
+    gpio_init(button, GPIO_MODE_INPUT);
+    GPIOC->PUPDR |= (0b01 << 26); // set pull up
+    exti_setup();
 
     Stepper_TypeDef stepper;
     stepper.stepPin = step;
@@ -16,7 +22,7 @@ int app_main(void) {
 
     bool currentDir = false;
     for (int i=0; i<10; i++) {
-        stepper_stepAccel(&stepper, 1600);
+        stepper_step(&stepper, 200);
         currentDir = !currentDir;
         stepper_setDir(&stepper, currentDir);
     }

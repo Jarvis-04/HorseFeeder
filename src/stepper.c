@@ -5,6 +5,8 @@
 // TODO: Change default stepper time to be based on timer clock rather than hard set
 
 volatile uint32_t steps = 0;
+volatile bool eStop = false;
+static uint32_t defaultSpeed = 84000*2;
 
 // Setup for the stepper motor, step pin must be capable of being driven by timer2, timer 2 will be setup
 void stepper_init(Stepper_TypeDef *stepper) {
@@ -32,7 +34,8 @@ void stepper_setDir(Stepper_TypeDef *stepper, bool dir) {
 }
 
 void stepper_step(Stepper_TypeDef *stepper, uint32_t numSteps) {
-    stepper->stepTime = 84000;
+    if (eStop) return;
+    stepper->stepTime = defaultSpeed;
     TIM2->ARR = stepper->stepTime;
     steps = numSteps*2;
     TIM2->CR1 |= BIT(0);
@@ -42,7 +45,8 @@ void stepper_step(Stepper_TypeDef *stepper, uint32_t numSteps) {
 
 // TODO: Setup rundown time so it decelerates as well
 void stepper_stepAccel(Stepper_TypeDef *stepper, uint32_t numSteps) {
-    stepper->stepTime = 84000;
+    if (eStop) return;
+    stepper->stepTime = defaultSpeed;
     steps = numSteps*2;
     uint32_t currentStep = steps;
     TIM2->ARR = stepper->stepTime;
@@ -58,6 +62,16 @@ void stepper_stepAccel(Stepper_TypeDef *stepper, uint32_t numSteps) {
         }
     }
     TIM2->CR1 &= ~BIT(0);
+}
+
+void stepper_eStop() {
+    steps = 0;
+    eStop = true;
+    TIM2->CR1 &= ~BIT(0);
+}
+
+void stepper_resetEStop(){
+    eStop = false;
 }
 
 void TIM2_IRQHandler() {
