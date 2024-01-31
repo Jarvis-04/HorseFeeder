@@ -1,8 +1,7 @@
 #include "gpio.h"
-#include "rcc.h"
 
 void gpio_init(uint16_t pin, uint16_t mode) {
-    rcc_enableGPIO(PINBank(pin));
+    RCC->AHB1ENR |= BIT(PINBank(pin));
     GPIO(PINBank(pin))->MODER &= ~(0x3 << (PINNum(pin)*2));
     GPIO(PINBank(pin))->MODER |= (mode << (PINNum(pin)*2));
 }

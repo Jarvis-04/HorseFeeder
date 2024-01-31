@@ -1,5 +1,4 @@
 #include "systick.h"
-#include "rcc.h"
 
 static volatile uint32_t s_ticks = 0;
 
@@ -21,7 +20,7 @@ void systick_init(uint32_t reloadValue) {
     SysTick->VAL = 0U;
 
     // Enable systick clock
-    rcc_enableSysTick();
+    RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
 }
 
 bool systick_timer_expired(uint32_t *timer, uint32_t period) {

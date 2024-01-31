@@ -1,10 +1,8 @@
 #include "app_main.h"
 #include "global.h"
 #include "stepper.h"
-#include "gpio.h"
-#include "exti.h"
 #include "usart.h"
-#include "encoder.h"
+#include "button.h"
 
 int app_main(void) {
     systick_init(SystemCoreClock/1000);
@@ -17,9 +15,7 @@ int app_main(void) {
     }
     printf("System Starting\r\n");
 
-    gpio_init(ESTOPPIN, GPIO_MODE_INPUT);
-    gpio_pupd(ESTOPPIN, PU);
-    exti_setup(ESTOPPIN, EXTI_FT);
+    button_init(ESTOPPIN, BUTTON_INTERUPT, PU, EXTI_FT);
 
     Stepper_TypeDef stepper;
     stepper.stepPin = STEPPIN;
@@ -27,11 +23,21 @@ int app_main(void) {
     stepper_init(&stepper);
     stepper_setDir(&stepper, STEPPER_CW);
 
-    // bool currentDir = false;
-    // for (int i=0; i<10; i++) {
-    //     stepper_step(&stepper, 200);
-    //     currentDir = !currentDir;
-    //     stepper_setDir(&stepper, currentDir);
+    stepper_home(&stepper);
+    stepper_setDir(&stepper, STEPPER_CW);
+    stepper_step(&stepper, mmToSteps(100));
+
+    // while(1) {
+    //     // bool currentDir = false;
+    //     // for (int i=0; i<10; i++) {
+    //     //     // stepper_step(&stepper, 400);
+    //     //     stepper_stepAccel(&stepper, 400);
+    //     //     currentDir = !currentDir;
+    //     //     stepper_setDir(&stepper, currentDir);
+    //     // }
+
+    //     // printf("Press r to run again\r\n");
+    //     // while (usart_readChar() != 'r');
     // }
 
     return 0;
