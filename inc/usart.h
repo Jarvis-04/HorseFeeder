@@ -3,7 +3,7 @@
 
 #include "global.h"
 
-void usart_setup();
+void usart_init();
 
 char usart_readChar();
 

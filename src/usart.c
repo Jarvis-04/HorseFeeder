@@ -2,7 +2,7 @@
 #include "gpio.h"
 
 // Setup USART to use STLINK to pass messages to PC
-void usart_setup() {
+void usart_init() {
     // Enable USART 2 RCC
     RCC->APB1ENR |= BIT(17);
 

@@ -3,11 +3,12 @@
 #include "stepper.h"
 #include "usart.h"
 #include "button.h"
+#include "load_cell.h"
 
 int app_main(void) {
-    systick_init(SystemCoreClock/1000);
+    systick_init();
 
-    usart_setup();
+    usart_init();
     printf("Usart Setup and Communicating\r\n");
     printf("Press y to Start System\r\n");
     while(1) {
@@ -23,9 +24,22 @@ int app_main(void) {
     stepper_init(&stepper);
     stepper_setDir(&stepper, STEPPER_CW);
 
-    stepper_home(&stepper);
-    stepper_setDir(&stepper, STEPPER_CW);
-    stepper_step(&stepper, mmToSteps(100));
+    Load_Cell_TypeDef load_cell;
+    load_cell.clk = LOADCLK;
+    load_cell.dt = LOADDT;
+    load_cell_init(&load_cell);
+
+    while(1) {
+        load_cell_read(&load_cell);
+
+        delay(1000);
+        // printf("Press r to run again\r\n");
+        // while (usart_readChar() != 'r');
+    }
+
+    // stepper_home(&stepper);
+    // stepper_setDir(&stepper, STEPPER_CW);
+    // stepper_step(&stepper, mmToSteps(100));
 
     // while(1) {
     //     // bool currentDir = false;

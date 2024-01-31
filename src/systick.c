@@ -7,7 +7,9 @@ void SysTick_Handler() {
 }
 
 // TODO: Allow user to specify configuration when calling init
-void systick_init(uint32_t reloadValue) {
+void systick_init() {
+    // Microsecond Reload
+    uint32_t reloadValue = SystemCoreClock/1000000;
     // Set clock source to processor
     // Enable interupts
     // Enable Systick
@@ -24,6 +26,8 @@ void systick_init(uint32_t reloadValue) {
 }
 
 bool systick_timer_expired(uint32_t *timer, uint32_t period) {
+    // Convert period to ms
+    period = period*1000;
     // Check to make sure timer has not wrapped
     if (s_ticks + period < *timer) *timer = 0;
     // Setup for the first time
@@ -37,7 +41,12 @@ bool systick_timer_expired(uint32_t *timer, uint32_t period) {
 }
 
 void delay(uint32_t ms) {
-    uint32_t until = s_ticks + ms;
+    uint32_t until = s_ticks + (ms*1000);
+    while (s_ticks < until) (void)0;
+}
+
+void delayMicroSecond(uint32_t microS) {
+    uint32_t until = s_ticks + microS;
     while (s_ticks < until) (void)0;
 }
 

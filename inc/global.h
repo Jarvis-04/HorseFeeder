@@ -22,11 +22,10 @@
 #define STEPPIN PIN('A', 5)
 #define DIRPIN PIN('A', 9)
 #define ESTOPPIN PIN('C', 13)
-#define ENCODERBUTTONPIN PIN('B', 3)
-#define ENCODERAPIN PIN('B', 4)
-#define ENCODERBPIN PIN('B', 5)
 #define USARTTX PIN('A', 2)
 #define USARTRX PIN('A', 3)
 #define LIMIT01 PIN('A', 8)
+#define LOADCLK PIN('B', 5)
+#define LOADDT PIN('B', 4)
 
 #endif
