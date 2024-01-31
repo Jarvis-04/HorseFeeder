@@ -1,11 +1,11 @@
 #include "systick.h"
 #include "rcc.h"
 
-static volatile uint32_t s_ticks;
+static volatile uint32_t s_ticks = 0;
 
-// void SysTick_Handler() {
-//     s_ticks++;
-// }
+void SysTick_Handler() {
+    s_ticks++;
+}
 
 // TODO: Allow user to specify configuration when calling init
 void systick_init(uint32_t reloadValue) {
@@ -35,6 +35,11 @@ bool systick_timer_expired(uint32_t *timer, uint32_t period) {
     // use now instead of timer to catch up
     *timer = (s_ticks - *timer) > period ? s_ticks + period : *timer + period;
     return true;
+}
+
+void delay(uint32_t ms) {
+    uint32_t until = s_ticks + ms;
+    while (s_ticks < until) (void)0;
 }
 
 

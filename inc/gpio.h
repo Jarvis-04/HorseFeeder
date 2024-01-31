@@ -1,11 +1,13 @@
 #ifndef GPIO_H_INCLUDED
 #define GPIO_H_INCLUDED
 
-#include "header.h"
+#include "global.h"
 
 enum {GPIO_MODE_INPUT, GPIO_MODE_OUTPUT, GPIO_MODE_AF, GPIO_MODE_ANALOG};
 
 enum {AF0, AF1, AF2, AF3, AF4, AF5, AF6, AF7, AF8, AF9, AF10, AF11, AF12, AF13, AF14, AF15};
+
+enum {NOPUPD, PU, PD};
 
 struct gpio {
     volatile uint32_t MODER, OTYPER, OSPEEDR, PUPDR, IDR, ODR, BSRR, LCKR, AFR[2];
@@ -14,9 +16,13 @@ struct gpio {
 
 void gpio_init(uint16_t pin, uint16_t mode);
 
+void gpio_pupd(uint16_t pin, uint16_t mode);
+
 void gpio_set_af(uint16_t pin, uint8_t afMode);
 
 void gpio_set(uint16_t pin, bool state);
+
+bool gpio_read(uint16_t pin);
 
 // void gpio_reset(uint16_t pin);
 

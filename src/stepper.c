@@ -25,6 +25,9 @@ void stepper_init(Stepper_TypeDef *stepper) {
     TIM2->CCER |= BIT(0);
     TIM2->ARR = stepper->stepTime;
 
+    // Ensure no eStop
+    eStop = false;
+
     // Enable timer2 interupts
     NVIC_EnableIRQ(TIM2_IRQn);
 }

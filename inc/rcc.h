@@ -1,7 +1,7 @@
 #ifndef RCC_H_INCLUDED
 #define RCC_H_INCLUDED
 
-#include "header.h"
+#include "global.h"
 
 // struct rcc{
 //     volatile uint32_t CR, PLLCFGR, CFGR, CIR, AHB1RSTR, AHB2RSTR, AHB3RSTR, RESERVED01, APB1RSTR, APB2RSTR, RESERVED02[2],

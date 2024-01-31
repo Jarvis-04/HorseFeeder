@@ -1,7 +1,7 @@
 #ifndef STEPPER_H_INCLUDED
 #define STEPPER_H_INCLUDED
 
-#include "header.h"
+#include "global.h"
 
 typedef struct stepper {
     volatile uint16_t stepPin;
