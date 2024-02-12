@@ -28,14 +28,9 @@ int app_main(void) {
     load_cell.clk = LOADCLK;
     load_cell.dt = LOADDT;
     load_cell_init(&load_cell);
-
-    while(1) {
-        load_cell_read(&load_cell);
-
-        delay(1000);
-        // printf("Press r to run again\r\n");
-        // while (usart_readChar() != 'r');
-    }
+    delay(1000);
+    load_cell_tare(&load_cell);
+    load_cell_power_down(&load_cell);
 
     // stepper_home(&stepper);
     // stepper_setDir(&stepper, STEPPER_CW);
