@@ -9,8 +9,9 @@ void load_cell_init(Load_Cell_TypeDef *load_cell) {
     gpio_pupd(load_cell->dt, PU);
     gpio_set(load_cell->clk, 0);
 
-    // 1485 was good callibration for 1lb load cell
-    load_cell->calibration = 1485;
+    // 1485 was good callibration for 1kg load cell
+    // -781 was good callibration for 5kg load cell
+    load_cell->calibration = -781;
     load_cell->offset = 0;
 
     // Set gain to A 128
@@ -79,6 +80,10 @@ int32_t load_cell_get_units(Load_Cell_TypeDef *load_cell) {
 }
 
 // This function assumes a uart connection is already established to read from
+// Steps to callibrate
+// 1: init load cell
+// 2: tare to set offset
+// Follow function settings to find optimal calibration value
 void load_cell_calibrate(Load_Cell_TypeDef *load_cell) {
     int32_t currentValue = load_cell_get_units(load_cell);
     char input = 'n';
