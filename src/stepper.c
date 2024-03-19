@@ -9,8 +9,9 @@ static uint32_t defaultSpeed;
 
 // Setup for the stepper motor, step pin must be capable of being driven by timer2, timer 2 will be setup
 void stepper_init(Stepper_TypeDef *stepper) {
-    defaultSpeed = (SystemCoreClock/1000)*2;
+    defaultSpeed = SystemCoreClock/500;
     stepper->stepTime = defaultSpeed;
+    stepper->location = -1;
     // Enable outputs
     gpio_init(stepper->stepPin, GPIO_MODE_AF);
     gpio_init(stepper->dirPin, GPIO_MODE_OUTPUT);
@@ -23,9 +24,12 @@ void stepper_init(Stepper_TypeDef *stepper) {
     // Enable timer clock
     RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
 
-    TIM2->DIER |= TIM_DIER_UIE;
-    TIM2->CCMR1 |= (0b011 << TIM_CCMR1_OC1M_Pos);
+    // Setup timer for PWM mode with pulse width of 10 counts
+    TIM2->DIER |= TIM_DIER_CC1IE;
+    TIM2->CR1 &= ~TIM_CR1_CEN;
+    TIM2->CCMR1 |= (0b110 << TIM_CCMR1_OC1M_Pos);
     TIM2->CCER |= TIM_CCER_CC1E;
+    TIM2->CCR1 = PULSE_WIDTH;
     TIM2->ARR = stepper->stepTime;
 
     // Ensure no eStop
@@ -35,61 +39,62 @@ void stepper_init(Stepper_TypeDef *stepper) {
     NVIC_EnableIRQ(TIM2_IRQn);
 }
 
+void stepper_setSpeed(Stepper_TypeDef* stepper, int rpm) {
+    if (rpm == 0) {
+        stepper->stepTime = defaultSpeed;
+    } else if (rpm < 0) {
+        rpm = rpm*-1;
+    }
+    stepper->stepTime = 60*(SystemCoreClock/(200*rpm));
+}
+
 void stepper_setDir(Stepper_TypeDef *stepper, bool dir) {
+    stepper->direction = dir;
     gpio_set(stepper->dirPin, dir);
 }
 
 void stepper_step(Stepper_TypeDef *stepper, uint32_t numSteps) {
     if (eStop) return;
-    stepper->stepTime = defaultSpeed;
+    TIM2->CNT = 0;
     TIM2->ARR = stepper->stepTime;
-    steps = numSteps*2;
-    TIM2->CR1 |= BIT(0);
+    steps = numSteps;
+    TIM2->CR1 |= TIM_CR1_CEN;
     while (steps != 0);
-    TIM2->CR1 &= ~BIT(0);
+    TIM2->CR1 &= ~TIM_CR1_CEN;
+    stepper->location += (stepper->direction ? -1*numSteps : numSteps);
 }
 
-// TODO: Setup rundown time so it decelerates as well
-void stepper_stepAccel(Stepper_TypeDef *stepper, uint32_t numSteps) {
+void stepper_move_to_location(Stepper_TypeDef* stepper, uint32_t location_steps) {
+    // Check for estop
     if (eStop) return;
-    stepper->stepTime = defaultSpeed;
-    steps = numSteps*2;
-    uint32_t currentStep = steps;
-    TIM2->ARR = stepper->stepTime;
-    TIM2->CR1 |= BIT(0);
-    while (steps != 0) {
-        if (currentStep != steps) {
-            stepper->stepTime -= 50;
-            if (stepper->stepTime <= 20000) {
-                stepper->stepTime = 20000;
-            }
-            TIM2->ARR = stepper->stepTime;
-            currentStep = steps;
-        }
-    }
-    TIM2->CR1 &= ~BIT(0);
+    // Calculate how many steps needed to move to that location (motor should be homed before using this)
+    int distance = location_steps - stepper->location;
+    if (distance == 0) return;
+    stepper_setDir(stepper, distance<0 ? STEPPER_CCW : STEPPER_CW);
+    // convert mm distance to the num of steps required
+    stepper_step(stepper, distance<0 ? -1*distance : distance);
 }
 
 void stepper_home(Stepper_TypeDef *stepper) {
     if (eStop) return;
     stepper_setDir(stepper, STEPPER_CCW);
-    stepper->stepTime = defaultSpeed;
     steps = pow(2, 32)-1;
     TIM2->ARR = stepper->stepTime;
-    TIM2->CR1 |= BIT(0);
+    TIM2->CR1 |= TIM_CR1_CEN;
     while(steps != 0) {
         if (limit_read(LIMIT01) == LIMIT_CLOSED) {
             break;
         }
     }
     steps = 0;
-    TIM2->CR1 &= ~BIT(0);
+    TIM2->CR1 &= ~TIM_CR1_CEN;
+    stepper->location = 0;
 }
 
 void stepper_eStop() {
     steps = 0;
     eStop = true;
-    TIM2->CR1 &= ~BIT(0);
+    TIM2->CR1 &= ~TIM_CR1_CEN;
 }
 
 void stepper_resetEStop(){
@@ -97,6 +102,6 @@ void stepper_resetEStop(){
 }
 
 void TIM2_IRQHandler() {
-    TIM2->SR &= ~(0x1);
+    TIM2->SR &=~ TIM_SR_CC1IF;
     steps--;
 }

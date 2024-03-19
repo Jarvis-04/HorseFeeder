@@ -28,26 +28,16 @@ int app_main(void) {
     load_cell.clk = LOADCLK;
     load_cell.dt = LOADDT;
     load_cell_init(&load_cell);
-    delay(1000);
     load_cell_tare(&load_cell);
     load_cell_power_down(&load_cell);
 
-    // stepper_home(&stepper);
-    // stepper_setDir(&stepper, STEPPER_CW);
-    // stepper_step(&stepper, mmToSteps(100));
+    delay(1000);
 
-    // while(1) {
-    //     // bool currentDir = false;
-    //     // for (int i=0; i<10; i++) {
-    //     //     // stepper_step(&stepper, 400);
-    //     //     stepper_stepAccel(&stepper, 400);
-    //     //     currentDir = !currentDir;
-    //     //     stepper_setDir(&stepper, currentDir);
-    //     // }
-
-    //     // printf("Press r to run again\r\n");
-    //     // while (usart_readChar() != 'r');
-    // }
+    stepper_setSpeed(&stepper, 200);
+    stepper_home(&stepper);
+    stepper_move_to_location(&stepper, 200);
+    stepper_move_to_location(&stepper, 2000);
+    stepper_move_to_location(&stepper, 200);
 
     return 0;
 }
