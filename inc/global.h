@@ -19,12 +19,27 @@
 #define PINBank(pin) (pin >> 8)
 #define PINNum(pin) (pin & 255)
 
+// Stepper
 #define STEPPIN PIN('A', 5)
 #define DIRPIN PIN('A', 9)
+
+// Rail Stepper
+#define RAILENPIN PIN('A', 6)
+
+// Feed01
+#define FEED01ENPIN PIN('A', 7)
+
+// EStop
 #define ESTOPPIN PIN('C', 13)
+
+// USART
 #define USARTTX PIN('A', 2)
 #define USARTRX PIN('A', 3)
+
+// Limit Switch
 #define LIMIT01 PIN('A', 8)
+
+// Load Cell
 #define LOADCLK PIN('B', 5)
 #define LOADDT PIN('B', 4)
 

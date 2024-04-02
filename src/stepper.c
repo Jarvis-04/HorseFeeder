@@ -15,7 +15,9 @@ void stepper_init(Stepper_TypeDef *stepper) {
     // Enable outputs
     gpio_init(stepper->stepPin, GPIO_MODE_AF);
     gpio_init(stepper->dirPin, GPIO_MODE_OUTPUT);
+    gpio_init(stepper->enPin, GPIO_MODE_OUTPUT);
     gpio_set(stepper->dirPin, STEPPER_CW);
+    gpio_set(stepper->enPin, true);
     gpio_set_af(stepper->stepPin, AF1);
 
     // Enable Homing Switch
@@ -50,11 +52,12 @@ void stepper_setSpeed(Stepper_TypeDef* stepper, int rpm) {
 
 void stepper_setDir(Stepper_TypeDef *stepper, bool dir) {
     stepper->direction = dir;
-    gpio_set(stepper->dirPin, dir);
 }
 
 void stepper_step(Stepper_TypeDef *stepper, uint32_t numSteps) {
     if (eStop) return;
+    stepper_enable(stepper);
+    gpio_set(stepper->dirPin, stepper->direction);
     TIM2->CNT = 0;
     TIM2->ARR = stepper->stepTime;
     steps = numSteps;
@@ -62,6 +65,7 @@ void stepper_step(Stepper_TypeDef *stepper, uint32_t numSteps) {
     while (steps != 0);
     TIM2->CR1 &= ~TIM_CR1_CEN;
     stepper->location += (stepper->direction ? -1*numSteps : numSteps);
+    stepper_disable(stepper);
 }
 
 void stepper_move_to_location(Stepper_TypeDef* stepper, uint32_t location_steps) {
@@ -77,7 +81,8 @@ void stepper_move_to_location(Stepper_TypeDef* stepper, uint32_t location_steps)
 
 void stepper_home(Stepper_TypeDef *stepper) {
     if (eStop) return;
-    stepper_setDir(stepper, STEPPER_CCW);
+    stepper_enable(stepper);
+    gpio_set(stepper->dirPin, stepper->direction);
     steps = pow(2, 32)-1;
     TIM2->ARR = stepper->stepTime;
     TIM2->CR1 |= TIM_CR1_CEN;
@@ -89,6 +94,15 @@ void stepper_home(Stepper_TypeDef *stepper) {
     steps = 0;
     TIM2->CR1 &= ~TIM_CR1_CEN;
     stepper->location = 0;
+    stepper_disable(stepper);
+}
+
+void stepper_enable(Stepper_TypeDef *stepper) {
+    gpio_set(stepper->enPin, false);
+}
+
+void stepper_disable(Stepper_TypeDef *stepper) {
+    gpio_set(stepper->enPin, true);
 }
 
 void stepper_eStop() {

@@ -45,6 +45,10 @@ void delay(uint32_t ms) {
     while (s_ticks < until) (void)0;
 }
 
+uint32_t get_millis() {
+    return s_ticks/1000;
+}
+
 void delayMicroSecond(uint32_t microS) {
     uint32_t until = s_ticks + microS;
     while (s_ticks < until) (void)0;

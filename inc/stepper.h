@@ -9,6 +9,7 @@
 typedef struct stepper {
     volatile uint16_t stepPin;
     volatile uint16_t dirPin;
+    volatile uint16_t enPin;
     volatile uint32_t stepTime;
     volatile uint32_t location;
     volatile bool direction;
@@ -27,6 +28,10 @@ void stepper_step(Stepper_TypeDef *stepper, uint32_t numSteps);
 void stepper_move_to_location(Stepper_TypeDef* stepper, uint32_t location_steps);
 
 void stepper_home(Stepper_TypeDef *stepper);
+
+void stepper_enable(Stepper_TypeDef *stepper);
+
+void stepper_disable(Stepper_TypeDef *stepper);
 
 void stepper_eStop();
 

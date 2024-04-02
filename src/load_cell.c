@@ -58,25 +58,25 @@ int32_t load_cell_read(Load_Cell_TypeDef *load_cell) {
     return output;
 }
 
-int32_t load_cell_read_average(Load_Cell_TypeDef *load_cell, uint8_t num) {
-    int32_t average = 0;
+float load_cell_read_average(Load_Cell_TypeDef *load_cell, uint8_t num) {
+    uint32_t average = 0;
     for (uint8_t i=0; i<num; i++) {
         average += load_cell_read(load_cell);
     }
-    return average/num;
+    return (float)average/num;
 }
 
 void load_cell_tare(Load_Cell_TypeDef *load_cell) {
-    int32_t offset = load_cell_read_average(load_cell, 10);
+    uint32_t offset = load_cell_read_average(load_cell, 50);
     load_cell->offset = offset;
 }
 
-int32_t load_cell_get_value(Load_Cell_TypeDef *load_cell) {
-    return (load_cell_read_average(load_cell, 10) - load_cell->offset);
+float load_cell_get_value(Load_Cell_TypeDef *load_cell, int num) {
+    return (load_cell_read_average(load_cell, num) - load_cell->offset);
 }
 
-int32_t load_cell_get_units(Load_Cell_TypeDef *load_cell) {
-    return (load_cell_get_value(load_cell)/load_cell->calibration);
+float load_cell_get_grams(Load_Cell_TypeDef *load_cell, int num) {
+    return (load_cell_get_value(load_cell, num)/load_cell->calibration);
 }
 
 // This function assumes a uart connection is already established to read from
@@ -85,12 +85,12 @@ int32_t load_cell_get_units(Load_Cell_TypeDef *load_cell) {
 // 2: tare to set offset
 // Follow function settings to find optimal calibration value
 void load_cell_calibrate(Load_Cell_TypeDef *load_cell) {
-    int32_t currentValue = load_cell_get_units(load_cell);
+    float currentValue = load_cell_get_grams(load_cell, 10);
     char input = 'n';
     printf("The current weight will be reported, use a to increase the calibration factor and z to decrease it. d to finish\r\n");
     while (1) {
-        printf("The scale is currently reading %ldgrams\r\n", currentValue);
-        printf("The current calibration value is %ld\r\n", load_cell->calibration);
+        printf("The scale is currently reading %fgrams\r\n", currentValue);
+        printf("The current calibration value is %f\r\n", load_cell->calibration);
         input = usart_readChar();
         if (input == 'a') {
             load_cell->calibration += 1;
@@ -99,9 +99,9 @@ void load_cell_calibrate(Load_Cell_TypeDef *load_cell) {
         } else if (input == 'd') {
             break;
         }
-        currentValue = load_cell_get_units(load_cell);
+        currentValue = load_cell_get_grams(load_cell, 10);
     }
-    printf("The final calibration value is %ld\r\n", load_cell->calibration);
+    printf("The final calibration value is %f\r\n", load_cell->calibration);
 }
 
 void load_cell_power_down (Load_Cell_TypeDef *load_cell) {
