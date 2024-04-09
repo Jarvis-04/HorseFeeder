@@ -12,6 +12,7 @@ typedef struct pid {
     float ITerm, lastInput;
     int sampleTime;
     float outMin, outMax;
+    float output;
 }PID_TypeDef;
 
 void PID_init(PID_TypeDef *pid, float Kp, float Ki, float Kd);

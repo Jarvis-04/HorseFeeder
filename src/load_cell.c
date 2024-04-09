@@ -67,7 +67,7 @@ float load_cell_read_average(Load_Cell_TypeDef *load_cell, uint8_t num) {
 }
 
 void load_cell_tare(Load_Cell_TypeDef *load_cell) {
-    uint32_t offset = load_cell_read_average(load_cell, 50);
+    uint32_t offset = load_cell_read_average(load_cell, 20);
     load_cell->offset = offset;
 }
 
@@ -111,4 +111,6 @@ void load_cell_power_down (Load_Cell_TypeDef *load_cell) {
 
 void load_cell_power_up(Load_Cell_TypeDef *load_cell) {
     gpio_set(load_cell->clk, 0);
+    // get first value to avoid initial spike
+    load_cell_get_grams(load_cell, 1);
 }

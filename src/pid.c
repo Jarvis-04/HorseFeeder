@@ -9,9 +9,10 @@ void PID_init(PID_TypeDef *pid, float Kp, float Ki, float Kd) {
     pid->ITerm = 0;
     pid->lastInput = 0;
     pid->lastTime = 0;
-    pid->sampleTime = 1000;
-    pid->outMin = -1000;
-    pid->outMax = 1000;
+    pid->sampleTime = 10;
+    pid->outMin = -25;
+    pid->outMax = 25;
+    pid->output = 0;
 }
 
 void PID_setSetPoint(PID_TypeDef *pid, float setPoint) {
@@ -19,7 +20,6 @@ void PID_setSetPoint(PID_TypeDef *pid, float setPoint) {
 }
 
 float PID_compute(PID_TypeDef *pid, float input) {
-    float Output = 0;
     uint32_t now = get_millis();
     int timeChange = (now-pid->lastTime);
     if (timeChange >= pid->sampleTime) {
@@ -30,14 +30,15 @@ float PID_compute(PID_TypeDef *pid, float input) {
 
         float dInput = (input - pid->lastInput);
 
-        Output = pid->Kp * error + pid->ITerm - pid->Kd*dInput;
-        if (Output > pid->outMax) Output = pid->outMax;
-        else if (Output < pid->outMin) Output = pid->outMin;
+        pid->output = pid->Kp * error + pid->ITerm - pid->Kd*dInput;
+        if (pid->output > pid->outMax) pid->output = pid->outMax;
+        else if (pid->output < pid->outMin) pid->output = pid->outMin;
 
         pid->lastInput = input;
         pid->lastTime = now;
-        printf("KP: %f, KI: %f, KD: %f\r\n", pid->Kp*error, pid->ITerm, pid->Kd*dInput);
-        printf("Output: %f\r\n", Output);
+        // printf("Current Weight: %f\r\n", input);
+        // printf("KP: %f, KI: %f, KD: %f\r\n", pid->Kp*error, pid->ITerm, pid->Kd*dInput);
+        // printf("Output: %f\r\n", Output);
     }
-    return Output;
+    return pid->output;
 }

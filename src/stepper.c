@@ -47,7 +47,9 @@ void stepper_setSpeed(Stepper_TypeDef* stepper, int rpm) {
     } else if (rpm < 0) {
         rpm = rpm*-1;
     }
-    stepper->stepTime = 60*(SystemCoreClock/(200*rpm));
+    stepper->stepTime = 60*(SystemCoreClock/((200*stepper->microStep)*rpm));
+    TIM2->CNT = 0;
+    TIM2->ARR = stepper->stepTime;
 }
 
 void stepper_setDir(Stepper_TypeDef *stepper, bool dir) {
@@ -68,6 +70,22 @@ void stepper_step(Stepper_TypeDef *stepper, uint32_t numSteps) {
     stepper_disable(stepper);
 }
 
+// Start running the stepper in the backgroud without stopping
+void stepper_start(Stepper_TypeDef *stepper) {
+    stepper_enable(stepper);
+    gpio_set(stepper->dirPin, stepper->direction);
+    TIM2->CNT = 0;
+    TIM2->ARR = stepper->stepTime;
+    steps = pow(2, 32) -1;
+    TIM2->CR1 |= TIM_CR1_CEN;
+}
+
+// Should be called after stepper_start
+void stepper_stop(Stepper_TypeDef *stepper) {
+    TIM2->CR1 &= ~TIM_CR1_CEN;
+    stepper_disable(stepper);
+}
+
 void stepper_move_to_location(Stepper_TypeDef* stepper, uint32_t location_steps) {
     // Check for estop
     if (eStop) return;
@@ -77,6 +95,25 @@ void stepper_move_to_location(Stepper_TypeDef* stepper, uint32_t location_steps)
     stepper_setDir(stepper, distance<0 ? STEPPER_CCW : STEPPER_CW);
     // convert mm distance to the num of steps required
     stepper_step(stepper, distance<0 ? -1*distance : distance);
+}
+
+void stepper_pid(Stepper_TypeDef *stepper, PID_TypeDef *pid, Load_Cell_TypeDef *input, float target) {
+    bool running = true;
+    float output;
+    float weight;
+    PID_setSetPoint(pid, target);
+    stepper_start(stepper);
+    while(running){
+        weight = load_cell_get_grams(input, 1);
+        output = PID_compute(pid, weight);
+        // printf("OUTPUT: %d, Weight: %f\r\n", (int)output, weight);
+        stepper_setSpeed(stepper, (int)output);
+        if (output <= 5) {
+            running = false;
+        }
+    }
+    stepper_stop(stepper);
+    printf("Weight: %f\r\n", weight);
 }
 
 void stepper_home(Stepper_TypeDef *stepper) {
