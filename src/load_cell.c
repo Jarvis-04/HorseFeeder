@@ -3,7 +3,9 @@
 #include "systick.h"
 #include "usart.h"
 
+// Initialize load cell
 void load_cell_init(Load_Cell_TypeDef *load_cell) {
+    // Set load cell gpio pins appropriatly 
     gpio_init(load_cell->clk, GPIO_MODE_OUTPUT);
     gpio_init(load_cell->dt, GPIO_MODE_INPUT);
     gpio_pupd(load_cell->dt, PU);
@@ -24,18 +26,22 @@ void load_cell_init(Load_Cell_TypeDef *load_cell) {
     }
 }
 
+// Returns wether or not the load cell is ready
 bool load_cell_ready(Load_Cell_TypeDef *load_cell) {
     return (gpio_read(load_cell->dt)==0);
 }
 
+// Returns once the load cell is ready
 void load_cell_wait(Load_Cell_TypeDef *load_cell) {
     while (load_cell_ready(load_cell) == 0) {}
 }
 
+// Reads data from the load cell (HX711)
 int32_t load_cell_read(Load_Cell_TypeDef *load_cell) {
     int32_t output = 0;
     load_cell_wait(load_cell);
 
+    // Pulse clock pin to shift data onto data pin
     // Might need to block interupts in future to ensure proper communication
     uint32_t data = 0;
     for (uint8_t i=0; i<24; i++) {
@@ -46,10 +52,12 @@ int32_t load_cell_read(Load_Cell_TypeDef *load_cell) {
         data |= gpio_read(load_cell->dt);
         data = data << 1;
     }
+    // Set next transmission mode
     gpio_set(load_cell->clk, 1);
     delayMicroSecond(1);
     gpio_set(load_cell->clk, 0);
 
+    // Format data (fill 32 bits and keep sign)
     if (data & BIT(24)) {
         output |= (0xFF << 24) | data;
     } else {
@@ -58,6 +66,7 @@ int32_t load_cell_read(Load_Cell_TypeDef *load_cell) {
     return output;
 }
 
+// Read load cell multiple times and take the average
 float load_cell_read_average(Load_Cell_TypeDef *load_cell, uint8_t num) {
     uint32_t average = 0;
     for (uint8_t i=0; i<num; i++) {
@@ -66,15 +75,18 @@ float load_cell_read_average(Load_Cell_TypeDef *load_cell, uint8_t num) {
     return (float)average/num;
 }
 
+// Read load cell multiple times and remove offset to set current value to 0
 void load_cell_tare(Load_Cell_TypeDef *load_cell) {
     uint32_t offset = load_cell_read_average(load_cell, 20);
     load_cell->offset = offset;
 }
 
+// Returns the value reported by load cell with offset included
 float load_cell_get_value(Load_Cell_TypeDef *load_cell, int num) {
     return (load_cell_read_average(load_cell, num) - load_cell->offset);
 }
 
+// Returns the value reported by the load cell with offset and calibration to get grams output
 float load_cell_get_grams(Load_Cell_TypeDef *load_cell, int num) {
     return (load_cell_get_value(load_cell, num)/load_cell->calibration);
 }
@@ -104,11 +116,13 @@ void load_cell_calibrate(Load_Cell_TypeDef *load_cell) {
     printf("The final calibration value is %f\r\n", load_cell->calibration);
 }
 
+// Power down load cell
 void load_cell_power_down (Load_Cell_TypeDef *load_cell) {
     gpio_set(load_cell->clk, 0);
     gpio_set(load_cell->clk, 1);
 }
 
+// Power up load cell
 void load_cell_power_up(Load_Cell_TypeDef *load_cell) {
     gpio_set(load_cell->clk, 0);
     // get first value to avoid initial spike

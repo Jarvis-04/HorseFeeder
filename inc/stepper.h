@@ -8,6 +8,7 @@
 #define PULSE_WIDTH 10
 // One roation moves the bed about 44mm
 
+// Stepper object
 typedef struct stepper {
     volatile uint16_t stepPin;
     volatile uint16_t dirPin;
@@ -35,6 +36,8 @@ void stepper_stop(Stepper_TypeDef *stepper);
 void stepper_move_to_location(Stepper_TypeDef* stepper, uint32_t location_steps);
 
 void stepper_pid(Stepper_TypeDef *stepper, PID_TypeDef *pid, Load_Cell_TypeDef *input, float target);
+
+void stepper_purge(Stepper_TypeDef *stepper);
 
 void stepper_home(Stepper_TypeDef *stepper);
 

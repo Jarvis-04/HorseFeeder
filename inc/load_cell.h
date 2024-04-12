@@ -3,6 +3,7 @@
 
 #include "global.h"
 
+// Load cell object
 typedef struct load_cell{
     uint16_t clk;
     uint16_t dt;

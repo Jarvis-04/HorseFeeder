@@ -1,8 +1,11 @@
 #include "exti.h"
 #include "stepper.h"
 
+// Initialize the EXTI for a provided pin and mode
 void exti_setup(uint16_t pin, uint16_t mode){
+    // Enable interupt mask 
     EXTI->IMR |= BIT(PINNum(pin));
+    // Set the rising or falling trigger for the pin
     if (mode == EXTI_RT) {
         EXTI->RTSR |= BIT(PINNum(pin));
     } else if (mode == EXTI_FT){
@@ -11,8 +14,11 @@ void exti_setup(uint16_t pin, uint16_t mode){
         EXTI->RTSR |= BIT(PINNum(pin));
         EXTI->FTSR |= BIT(PINNum(pin));
     }
+
+    // Set the input to the EXTI 
     SYSCFG->EXTICR[PINNum(pin)/4] |= (PINBank(pin)<<(4*(PINNum(pin)%4)));
-    // This doesnt look the cleanest, not sure how to make it better
+
+    // Enable the NVIC Interupt for the desired pin
     switch (PINNum(pin)){
         case 0:
             NVIC_EnableIRQ(EXTI0_IRQn);
@@ -38,6 +44,7 @@ void exti_setup(uint16_t pin, uint16_t mode){
     }
 }
 
+// EXTI Handler for ESTOP button
 void EXTI15_10_IRQHandler(){
     // Pin 13 Check (Blue button eStop)
     if (EXTI->PR & (1 << 13)) {

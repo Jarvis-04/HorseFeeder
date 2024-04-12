@@ -3,6 +3,7 @@
 
 #include "global.h"
 
+// Limit states
 enum {LIMIT_CLOSED, LIMIT_OPEN};
 
 void limit_init(uint16_t pin);

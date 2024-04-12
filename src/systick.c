@@ -40,15 +40,18 @@ bool systick_timer_expired(uint32_t *timer, uint32_t period) {
     return true;
 }
 
+// Spin for the desired ms
 void delay(uint32_t ms) {
     uint32_t until = s_ticks + (ms*1000);
     while (s_ticks < until) (void)0;
 }
 
+// Get the current system time in milliseconds
 uint32_t get_millis() {
     return s_ticks/1000;
 }
 
+// Spin for the desired microseconds
 void delayMicroSecond(uint32_t microS) {
     uint32_t until = s_ticks + microS;
     while (s_ticks < until) (void)0;
