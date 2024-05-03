@@ -4,14 +4,32 @@
 #include "math.h"
 #include "usart.h"
 
-// TODO: Set ESTOP on all function that move the steppers
+#define PULSE_WIDTH 10
+
+// Stepper object
+struct stepperData {
+    volatile uint16_t stepPin;
+    volatile uint16_t dirPin;
+    volatile uint16_t enPin;
+    volatile uint32_t stepTime;
+    volatile uint32_t location;
+    volatile bool direction;
+    volatile uint8_t microStep;
+};
 
 // Variables used by all steppers
 volatile uint32_t steps = 0;
 volatile bool eStop = false;
 
 // Setup for the stepper motor, step pin must be capable of being driven by timer2, timer 2 will be setup
-void stepper_init(Stepper_TypeDef *stepper) {
+Stepper_TypeDef *stepper_init(uint16_t stepPin, uint16_t dirPin, uint16_t enPin, uint8_t microStep) {
+    // Create stepper struct and fill parameters
+    Stepper_TypeDef *stepper = (Stepper_TypeDef *)malloc(sizeof(struct stepperData));
+    stepper->stepPin = stepPin;
+    stepper->dirPin = dirPin;
+    stepper->enPin = enPin;
+    stepper->microStep = microStep;
+
     // Set default speed and location values
     stepper_setSpeed(stepper, 50);
     stepper->location = -1;
@@ -42,9 +60,18 @@ void stepper_init(Stepper_TypeDef *stepper) {
 
     // Enable timer2 interupts
     NVIC_EnableIRQ(TIM2_IRQn);
+
+    return stepper;
 }
 
-void stepper_setSpeed(Stepper_TypeDef* stepper, int rpm) {
+// Stop and disable a stepper before freeing its allocation
+void stepper_destroy(Stepper_TypeDef *stepper) {
+    stepper_stop(stepper);
+    stepper_disable(stepper);
+    free(stepper);
+}
+
+void stepper_setSpeed(Stepper_TypeDef *stepper, int rpm) {
     // Should not set rpm to 0
     if (rpm == 0) {
         return;
@@ -112,7 +139,7 @@ void stepper_pid(Stepper_TypeDef *stepper, PID_TypeDef *pid, Load_Cell_TypeDef *
     float weight;
     load_cell_tare(input);
     stepper_setDir(stepper, STEPPER_CW);
-    stepper_setSpeed(stepper, pid->outMin);
+    stepper_setSpeed(stepper, PID_getOutMin(pid));
     PID_setSetPoint(pid, target);
     stepper_start(stepper);
     // Start the motor and loop

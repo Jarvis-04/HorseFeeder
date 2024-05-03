@@ -22,38 +22,26 @@ int app_main(void) {
     button_init(ESTOPPIN, BUTTON_INTERUPT, PU, EXTI_FT);
 
     // Rail Stepper Init
-    Stepper_TypeDef railStepper;
-    railStepper.stepPin = STEPPIN;
-    railStepper.dirPin = DIRPIN;
-    railStepper.enPin = RAILENPIN;
-    railStepper.microStep = 1;
-    stepper_init(&railStepper);
+    Stepper_TypeDef *railStepper = stepper_init(STEPPIN, DIRPIN, RAILENPIN, 1);
 
     // Feeder01 Init
-    Stepper_TypeDef feed01Stepper;
-    feed01Stepper.stepPin = STEPPIN;
-    feed01Stepper.dirPin = DIRPIN;
-    feed01Stepper.enPin = FEED01ENPIN;
-    feed01Stepper.microStep = 16;
-    stepper_init(&feed01Stepper);
+    Stepper_TypeDef *feed01Stepper = stepper_init(STEPPIN, DIRPIN, FEED01ENPIN, 16);
 
     // Load Cell Init
-    Load_Cell_TypeDef load_cell;
-    load_cell.clk = LOADCLK;
-    load_cell.dt = LOADDT;
-    load_cell_init(&load_cell);
-    load_cell_tare(&load_cell);
-    load_cell_power_down(&load_cell);
-    load_cell_power_up(&load_cell);
+    Load_Cell_TypeDef *load_cell = load_cell_init(LOADCLK, LOADDT);
 
     // PID Init
-    PID_TypeDef pid;
-    PID_init(&pid, 10, 0.001, 0.001, 1, 50, 10);
+    PID_TypeDef *pid = PID_init(10, 0.001, 0.001, 1, 50, 10);
 
     // Wait 1 Second and Start
     delay(1000);
 
-    stepper_pid(&feed01Stepper, &pid, &load_cell, 4);
+    stepper_pid(feed01Stepper, pid, load_cell, 4);
 
+
+    stepper_destroy(railStepper);
+    stepper_destroy(feed01Stepper);
+    load_cell_destroy(load_cell);
+    PID_destroy(pid);
     return 0;
 }

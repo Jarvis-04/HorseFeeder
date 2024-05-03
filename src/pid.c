@@ -1,8 +1,23 @@
 #include "pid.h"
 #include "systick.h"
 
+// PID Object
+struct pidData {
+    float Kp;
+    float Ki;
+    float Kd;
+    uint32_t lastTime;
+    float setPoint;
+    float ITerm, lastInput;
+    int sampleTime;
+    float outMin, outMax;
+    float output;
+};
+
 // Initialize PID values
-void PID_init(PID_TypeDef *pid, float Kp, float Ki, float Kd, float outMin, float outMax, int sampleTime) {
+PID_TypeDef *PID_init(float Kp, float Ki, float Kd, float outMin, float outMax, int sampleTime) {
+    PID_TypeDef *pid = (PID_TypeDef *)malloc(sizeof(struct pidData));
+
     pid->Kp = Kp;
     pid->Ki = Ki;
     pid->Kd = Kd;
@@ -15,6 +30,12 @@ void PID_init(PID_TypeDef *pid, float Kp, float Ki, float Kd, float outMin, floa
     pid->lastTime = 0;
 
     pid->output = 0;
+
+    return pid;
+}
+
+void PID_destroy(PID_TypeDef *pid) {
+    free(pid);
 }
 
 // Set the PID set point
@@ -27,9 +48,19 @@ void PID_setOutMin(PID_TypeDef *pid, float outMin) {
     pid->outMin = outMin;
 }
 
+// Get the PID output minimum
+float PID_getOutMin(PID_TypeDef *pid) {
+    return pid->outMin;
+}
+
 // Set the PID output maximum
 void PID_setOutMax(PID_TypeDef *pid, float outMax) {
     pid->outMax = outMax;
+}
+
+// Get the PID output maximum
+float PID_getOutMax(PID_TypeDef *pid) {
+    return pid->outMax;
 }
 
 // Run the PID loop

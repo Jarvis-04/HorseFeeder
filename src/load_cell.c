@@ -3,9 +3,22 @@
 #include "systick.h"
 #include "usart.h"
 
+// Load cell object
+struct loadCellData{
+    uint16_t clk;
+    uint16_t dt;
+    uint32_t offset;
+    float calibration;
+};
+
 // Initialize load cell
-void load_cell_init(Load_Cell_TypeDef *load_cell) {
-    // Set load cell gpio pins appropriatly 
+Load_Cell_TypeDef *load_cell_init(uint16_t clkPin, uint16_t dataPin) {
+    // Create load cell struct and fill parameters
+    Load_Cell_TypeDef *load_cell = (Load_Cell_TypeDef *)malloc(sizeof(struct loadCellData));
+    load_cell->clk = clkPin;
+    load_cell->dt = dataPin;
+
+    // Set load cell gpio pins appropriatly
     gpio_init(load_cell->clk, GPIO_MODE_OUTPUT);
     gpio_init(load_cell->dt, GPIO_MODE_INPUT);
     gpio_pupd(load_cell->dt, PU);
@@ -24,6 +37,14 @@ void load_cell_init(Load_Cell_TypeDef *load_cell) {
         gpio_set(load_cell->clk, 0);
         delayMicroSecond(1);
     }
+
+    return load_cell;
+}
+
+// Power down and free load cell
+void load_cell_destroy(Load_Cell_TypeDef *load_cell) {
+    load_cell_power_down(load_cell);
+    free(load_cell);
 }
 
 // Returns wether or not the load cell is ready

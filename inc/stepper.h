@@ -5,23 +5,13 @@
 #include "pid.h"
 #include "load_cell.h"
 
-#define PULSE_WIDTH 10
-// One roation moves the bed about 44mm
-
-// Stepper object
-typedef struct stepper {
-    volatile uint16_t stepPin;
-    volatile uint16_t dirPin;
-    volatile uint16_t enPin;
-    volatile uint32_t stepTime;
-    volatile uint32_t location;
-    volatile bool direction;
-    volatile uint8_t microStep;
-}Stepper_TypeDef;
+typedef struct stepperData Stepper_TypeDef;
 
 enum {STEPPER_CW, STEPPER_CCW};
 
-void stepper_init(Stepper_TypeDef *stepper);
+Stepper_TypeDef *stepper_init(uint16_t stepPin, uint16_t dirPin, uint16_t enPin, uint8_t microStep);
+
+void stepper_destroy(Stepper_TypeDef *stepper);
 
 void stepper_setSpeed(Stepper_TypeDef* stepper, int rpm);
 

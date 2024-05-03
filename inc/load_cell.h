@@ -3,15 +3,11 @@
 
 #include "global.h"
 
-// Load cell object
-typedef struct load_cell{
-    uint16_t clk;
-    uint16_t dt;
-    uint32_t offset;
-    float calibration;
-} Load_Cell_TypeDef;
+typedef struct loadCellData Load_Cell_TypeDef;
 
-void load_cell_init(Load_Cell_TypeDef *load_cell);
+Load_Cell_TypeDef *load_cell_init(uint16_t clkPin, uint16_t dataPin);
+
+void load_cell_destroy(Load_Cell_TypeDef *load_cell);
 
 bool load_cell_ready(Load_Cell_TypeDef *load_cell);
 
